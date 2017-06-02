@@ -102,6 +102,7 @@ exports.index = function (req, res, next) {
 // GET /quizzes/:quizId
 exports.show = function (req, res, next) {
 
+
     res.render('quizzes/show', {quiz: req.quiz});
 };
 
@@ -199,7 +200,6 @@ exports.destroy = function (req, res, next) {
 
 // GET /quizzes/:quizId/play
 exports.play = function (req, res, next) {
-
     var answer = req.query.answer || '';
 
     res.render('quizzes/play', {
@@ -220,5 +220,59 @@ exports.check = function (req, res, next) {
         quiz: req.quiz,
         result: result,
         answer: answer
+    });
+};
+
+// GET /quizzes/randomplay
+exports.randomplay = function (req, res, next) {
+    if(!(req.session.random)){
+        req.session.random={yaRespondidas:[-1]};
+    }
+    if(req.session.random.yaRespondidas.length>5){
+        req.session.random={yaRespondidas:[-1]};
+    }
+    var findVvalores={};
+   models.Quiz.count(
+       {where:{id:{$notIn: req.session.random.yaRespondidas}}})
+           .then(function(c) {
+               var aleatoria = Math.floor(Math.random() * c);
+               findValores.offset=aleatoria;
+               findValores.where={id:{$notIn: req.session.random.yaRespondidas}};
+               findValores.limit=1;
+               return models.Quiz.findAll(findValores);
+           })
+           .then(function(quizzes){
+               if(quizzes.length==0){
+                   res.render('quizzes/random_nomore',{
+                       score: req.session.random.yaRespondidas.length-1
+               });
+           }else{
+                   var q=quizzes[0];
+                   res.render('quizzes/random_play',{
+                       quiz: q,
+                       score: req.session.random.yaRespondidas.length-1
+                   });
+               }
+           })
+};
+
+
+
+// GET /quizzes/randomcheck/:quizId
+exports.randomcheck = function (req, res, next) {
+
+    var answer = req.query.answer || "";
+
+    var result = answer.toLowerCase().trim() === req.quiz.answer.toLowerCase().trim();
+    if(result){
+        req.session.random.yaRespondidas.push(req.quiz.id);
+    }else{
+        req.session.random={yaRespondidas:[-1]};
+    }
+    res.render('quizzes/random_result', {
+        quiz:  req.quiz,
+        result: result,
+        answer: answer,
+        score: req.session.random.yaRespondidas.length-1
     });
 };
