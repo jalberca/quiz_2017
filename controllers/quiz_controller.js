@@ -196,7 +196,7 @@ exports.randomplay = function (req, res, next) {
     if(req.session.random.yaRespondidas.length>5){
         req.session.random={yaRespondidas:[-1]};
     }
-    var findValores={};
+    var findVvalores={};
    models.Quiz.count(
        {where:{id:{$notIn: req.session.random.yaRespondidas}}})
            .then(function(c) {
