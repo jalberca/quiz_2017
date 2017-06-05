@@ -8,7 +8,7 @@ exports.load = function (req, res, next, quizId) {
 
     models.Quiz.findById(quizId, {
         include: [
-            models.Tip,
+            {model: models.Tip, include: [{model: models.User, as: 'Author'}]},
             {model: models.User, as: 'Author'}
         ]
     })
@@ -231,7 +231,7 @@ exports.randomplay = function (req, res, next) {
     if(req.session.random.yaRespondidas.length>5){
         req.session.random={yaRespondidas:[-1]};
     }
-    var findVvalores={};
+    var findValores={};
    models.Quiz.count(
        {where:{id:{$notIn: req.session.random.yaRespondidas}}})
            .then(function(c) {
